@@ -8,6 +8,7 @@
 #include <QComboBox>
 #include <QListWidget>
 #include <QDebug>
+#include <QUuid>
 
 
 class SqlManager
@@ -18,6 +19,7 @@ private:
     void Load_Client_Information(const QString &client_name);
     void Load_Client_Time_Clock(const QString &client_name);
     QString time_0, name_0;
+    QUuid guid;
 public:
     SqlManager();
     ~SqlManager();

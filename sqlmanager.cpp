@@ -4,6 +4,7 @@ SqlManager::SqlManager() {
     db_main = QSqlDatabase::addDatabase("QMYSQL3");
     db_main.setDatabaseName("PsiPhi");
     query = new QSqlQuery(db_main);
+
 }
 SqlManager::~SqlManager() {
     delete query;
@@ -49,6 +50,8 @@ void SqlManager::LoadListWidget(QListWidget * lw, const QString &client_name)
     query->prepare("SELECT * FROM Client_Information WHERE Name = (:client_name)");
     query->bindValue(":client_name", client_name);
     query->bindValue(":ci", CI_ColumnsX[0]);
+    // Make a number for the session.
+    guid = QUuid::createUuid();
     if(query->exec()){
         while(query->next()){
             for(int n = 1; n < CI_ColumnsX.size(); ++n){
@@ -56,5 +59,31 @@ void SqlManager::LoadListWidget(QListWidget * lw, const QString &client_name)
                 lw->addItem(s);
             }
         }
+    }
+}
+void SqlManager::ClockIn(const QString &client_name)
+{
+    QString execute("INSERT INTO Time_Clock (Name, Date, Time_Start, GUID) VALUES ('");
+    execute.append(client_name);
+    execute.append("', CURDATE(), NOW(), '");
+    execute.append(guid.toString(QUuid::StringFormat::WithoutBraces));
+    execute.append("');");
+    if(query->exec(execute)){
+        qDebug() << "ClockedIn";
+    } else {
+        qDebug()<<db_main.lastError();
+    }
+}
+void SqlManager::ClockOut(const QString &client_name)
+{
+    QString execute("UPDATE Time_Clock SET Time_End = NOW() WHERE GUID = '");
+    execute.append(guid.toString(QUuid::StringFormat::WithoutBraces));
+    execute.append("';");
+    qDebug() << execute;
+    if(query->exec(execute)){
+        qDebug() << "ClockedOut";
+        guid = QUuid::createUuid();
+    } else {
+        qDebug()<<db_main.lastError();
     }
 }

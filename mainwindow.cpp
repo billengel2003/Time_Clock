@@ -41,8 +41,7 @@ void MainWindow::on_pushButton_clicked(bool checked)
         ui->pushButton->update();
         //
         ui->listWidget_2->addItem("Clocked out: ");
-        ui->textEdit->setText("OWED");
-        ui->textEdit->setText("HISTORY");
+        sql->ClockOut(ui->comboBox->currentText());
 
     }
 }
@@ -64,6 +63,7 @@ void MainWindow::on_pushButton_2_clicked(bool checked)
         ui->pushButton->update();
         //
         ui->listWidget_2->addItem("Clocked In: ");
+        sql->ClockIn(ui->comboBox->currentText());
     }
 }
 
