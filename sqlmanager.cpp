@@ -63,9 +63,9 @@ void SqlManager::LoadListWidget(QListWidget * lw, const QString &client_name)
 }
 void SqlManager::ClockIn(const QString &client_name)
 {
-    QString execute("INSERT INTO Time_Clock (Name, Date, Time_Start, GUID) VALUES ('");
+    QString execute("INSERT INTO Time_Clock (Name, Date, Time_Start, Paid, GUID) VALUES ('");
     execute.append(client_name);
-    execute.append("', CURDATE(), NOW(), '");
+    execute.append("', CURDATE(), NOW(), 0, '");
     execute.append(guid.toString(QUuid::StringFormat::WithoutBraces));
     execute.append("');");
     if(query->exec(execute)){
@@ -86,4 +86,32 @@ void SqlManager::ClockOut(const QString &client_name)
     } else {
         qDebug()<<db_main.lastError();
     }
+}
+void SqlManager::EditClient(const QString &phone, const QString &email,
+                            const QString &addy, const QString &city, const QString &state,
+                            const QString &zip, const QString &contact,
+                            const QString &website, const QString &rateD, const QString &rateS,
+                            const QString &rateI, const QString &rateDB, const QString &name)
+{
+    QString s = QString("UPDATE Client_Information SET Phone = replace('%1', '-', ''),"
+                        " Email = '%2', Address = '%3', City = '%4',"
+                        " State = '%5', Zip = '%6',"
+                        " Main_Contact = '%7', ").arg(phone, email, addy, city, state, zip, contact);
+
+    QString D(rateD), I(rateI), S(rateS), DB(rateDB);
+    if(rateD == "") { D = "0.00" ;}
+    if(rateS == "") { S = "0.00" ;}
+    if(rateI == "") { I = "0.00" ;}
+    if(rateDB == "") { DB = "0.00" ;}
+    QString s1 = QString("WebSite = '%1', Rate_Default = %2, Rate_Software = %3,"
+                        " Rate_IT = %4, Rate_Database = %5 "
+                        "WHERE Name = '%6';").arg(website, D, S, I, DB, name);
+    QString s2 = s + s1;
+    if(query->exec(s2)){
+        qDebug() << "Client was updated";
+    } else {
+        qDebug()<<s2;
+        qDebug()<<db_main.lastError();
+    }
+
 }

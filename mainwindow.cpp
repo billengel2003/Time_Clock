@@ -80,6 +80,7 @@ void MainWindow::on_pushButton_4_clicked()
         Connected = true;
         ui->stackedWidget->setCurrentIndex(0);
         sql->LoadClientList(ui->comboBox);
+        sql->LoadClientList(ui->cmb_name_Edit);
         ui->comboBox->setCurrentIndex(0);
     } else{
         qDebug()<<"Did not Connect to SQL";
@@ -98,5 +99,16 @@ void MainWindow::on_comboBox_currentIndexChanged(const QString &arg1)
     ui->listWidget->clear();
     if(Connected){
         sql->LoadListWidget(ui->listWidget, arg1);
+    }
+}
+
+void MainWindow::on_pb_Update_Client_clicked()
+{
+    if(Connected){
+        sql->EditClient(ui->le_phone_Edit->text(), ui->le_email_Edit->text(), ui->le_addy_Edit->text(),
+                        ui->le_city_Edit->text(), ui->le_state_Edit->text(), ui->le_zip_Edit->text(),
+                        ui->le_contact_Edit->text(), ui->le_website_Edit->text(), ui->le_rateD_Edit->text(),
+                        ui->le_rateS_Edit->text(), ui->le_rateI_Edit->text(), ui->le_rateDB_Edit->text(),
+                        ui->cmb_name_Edit->currentText());
     }
 }

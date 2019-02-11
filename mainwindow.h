@@ -38,6 +38,8 @@ private slots:
 
     void on_comboBox_currentIndexChanged(const QString &arg1);
 
+    void on_pb_Update_Client_clicked();
+
 private:
     // Members
     Ui::MainWindow * ui;

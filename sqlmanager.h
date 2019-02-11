@@ -32,6 +32,11 @@ public:
     void ClockOut(const QString &client_name);
     void AddNote(const QString &client_name, const QString &note);
     void LoadListWidget(QListWidget * lw, const QString &client_name);
+    void EditClient(const QString &phone, const QString &email,
+                    const QString &addy, const QString &city, const QString &state,
+                    const QString &zip, const QString &contact,
+                    const QString &website, const QString &rateD, const QString &rateS,
+                    const QString &rateI, const QString &rateDB, const QString &name);
 };
 
 #endif // SQLMANAGER_H
