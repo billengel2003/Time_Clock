@@ -37,17 +37,22 @@ bool SqlManager::Connect(const QString &user, const QString &pw, const QString &
 
 void SqlManager::LoadClientList(QComboBox *cmb)
 {
+   // cmb->clear();
     QString s("SELECT ");
     s.append(CI_ColumnsX[0]);
     s.append(" FROM Client_Information");
-    query->exec(s);
-    while(query->next()){
-        QString name = query->value(0).toString();
-        cmb->addItem(name);
+    if(query->exec(s)){
+        while(query->next()){
+            QString name = query->value(0).toString();
+            cmb->addItem(name);
+        }
+    } else {
+        qDebug() << db_main.lastError();
     }
 }
 void SqlManager::LoadClientInfo(QListWidget * lw, const QString &client_name)
 {
+    lw->clear();
     query->prepare("SELECT * FROM Client_Information WHERE Name = (:client_name)");
     query->bindValue(":client_name", client_name);
     // Make a number for the session.
@@ -87,7 +92,7 @@ void SqlManager::ClockOut(const QString &client_name)
         qDebug()<<db_main.lastError();
     }
 }
-void SqlManager::EditClient(const QString &phone, const QString &email,
+bool SqlManager::EditClient(const QString &phone, const QString &email,
                             const QString &addy, const QString &city, const QString &state,
                             const QString &zip, const QString &contact,
                             const QString &website, const QString &rateD, const QString &rateS,
@@ -109,10 +114,78 @@ void SqlManager::EditClient(const QString &phone, const QString &email,
     QString s2 = s + s1;
     if(query->exec(s2)){
         qDebug() << "Client was updated";
+        return true;
     } else {
         qDebug()<<s2;
         qDebug()<<db_main.lastError();
+        return false;
     }
+
+}
+bool SqlManager::AddClient(const QString &phone, const QString &email,
+                           const QString &addy, const QString &city, const QString &state,
+                           const QString &zip, const QString &contact,
+                           const QString &website, const QString &rateD, const QString &rateS,
+                           const QString &rateI, const QString &rateDB, const QString &name)
+{
+    QString s = QString("INSERT INTO Client_Information (Name) VALUES ('%1');").arg(name);
+    if(query->exec(s)){
+        return EditClient(phone, email, addy, city, state, zip, contact, website, rateD, rateS, rateI, rateDB, name);
+    } else{
+        qDebug() << "Client did not add";
+        qDebug() << db_main.lastError();
+        return false;
+    }
+
+}
+void SqlManager::LoadNotes(QListWidget *lw, const QString &client_name)
+{
+    lw->clear();
+    query->prepare("SELECT * FROM Notes WHERE Name = (:client_name)");
+    query->bindValue(":client_name", client_name);
+    QString s;
+    if(query->exec()){
+        while(query->next()){
+            s = "(" + N_ColumnsX[1] + ")" + N_ColumnsX[2] + ": (" +
+                    query->value(1).toString() + ") " + query->value(2).toString().split('.')[0] +
+                    "\n" + query->value(3).toString();
+            lw->addItem(s);
+        }
+    } else {
+        qDebug()<<db_main.lastError();
+    }
+    lw->scrollToItem(lw->item(lw->count() - 1));
+}
+void SqlManager::AddNote(QListWidget * lw, const QString &client_name, QString note)
+{
+    QString note_new = note.replace('\n', ' ');
+    QString s = QString("INSERT INTO Notes (Name, Date, Time, Note, GUID)"
+                        " VALUES ('%1', CURDATE(), NOW(), '%2', '%3');").arg(
+                client_name, note_new, guid.toString(QUuid::StringFormat::WithoutBraces));
+    if(query->exec(s)){
+        qDebug()<<"Note was input";
+    } else{
+        qDebug()<<"Note did not go through";
+        qDebug()<<s;
+        qDebug()<<db_main.lastError();
+    }
+    LoadNotes(lw, client_name);
+}
+bool SqlManager::RemoveClient(const QString &client_name)
+{
+    QString s = QString("DELETE FROM Client_Information WHERE Name = '%1'").arg(client_name);
+    if(query->exec(s)){
+
+    } else {
+        qDebug() << db_main.lastError();
+    }
+    s = QString("DELETE FROM Notes WHERE Name = '%1'").arg(client_name);
+    if(query->exec(s)){
+
+    } else {
+        qDebug() << db_main.lastError();
+    }
+    s = QString("DELETE FROM Time_Clock WHERE Name = '%1'").arg(client_name);
 
 }
 void SqlManager::LoadNotes(QListWidget *lw, const QString &client_name)
