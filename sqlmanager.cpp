@@ -9,6 +9,7 @@ SqlManager::SqlManager() {
 SqlManager::~SqlManager() {
     delete query;
 }
+
 bool SqlManager::Connect(const QString &user, const QString &pw, const QString &host)
 {
     db_main.setHostName(host);
@@ -45,11 +46,10 @@ void SqlManager::LoadClientList(QComboBox *cmb)
         cmb->addItem(name);
     }
 }
-void SqlManager::LoadListWidget(QListWidget * lw, const QString &client_name)
+void SqlManager::LoadClientInfo(QListWidget * lw, const QString &client_name)
 {
     query->prepare("SELECT * FROM Client_Information WHERE Name = (:client_name)");
     query->bindValue(":client_name", client_name);
-    query->bindValue(":ci", CI_ColumnsX[0]);
     // Make a number for the session.
     guid = QUuid::createUuid();
     if(query->exec()){
@@ -93,16 +93,16 @@ void SqlManager::EditClient(const QString &phone, const QString &email,
                             const QString &website, const QString &rateD, const QString &rateS,
                             const QString &rateI, const QString &rateDB, const QString &name)
 {
-    QString s = QString("UPDATE Client_Information SET Phone = replace('%1', '-', ''),"
-                        " Email = '%2', Address = '%3', City = '%4',"
-                        " State = '%5', Zip = '%6',"
-                        " Main_Contact = '%7', ").arg(phone, email, addy, city, state, zip, contact);
-
     QString D(rateD), I(rateI), S(rateS), DB(rateDB);
     if(rateD == "") { D = "0.00" ;}
     if(rateS == "") { S = "0.00" ;}
     if(rateI == "") { I = "0.00" ;}
     if(rateDB == "") { DB = "0.00" ;}
+
+    QString s = QString("UPDATE Client_Information SET Phone = replace('%1', '-', ''),"
+                        " Email = '%2', Address = '%3', City = '%4',"
+                        " State = '%5', Zip = '%6',"
+                        " Main_Contact = '%7', ").arg(phone, email, addy, city, state, zip, contact);
     QString s1 = QString("WebSite = '%1', Rate_Default = %2, Rate_Software = %3,"
                         " Rate_IT = %4, Rate_Database = %5 "
                         "WHERE Name = '%6';").arg(website, D, S, I, DB, name);
@@ -114,4 +114,37 @@ void SqlManager::EditClient(const QString &phone, const QString &email,
         qDebug()<<db_main.lastError();
     }
 
+}
+void SqlManager::LoadNotes(QListWidget *lw, const QString &client_name)
+{
+    lw->clear();
+    query->prepare("SELECT * FROM Notes WHERE Name = (:client_name)");
+    query->bindValue(":client_name", client_name);
+    QString s;
+    if(query->exec()){
+        while(query->next()){
+            s = "(" + N_ColumnsX[1] + ")" + N_ColumnsX[2] + ": (" +
+                    query->value(1).toString() + ") " + query->value(2).toString().split('.')[0] +
+                    "\n" + query->value(3).toString();
+            lw->addItem(s);
+        }
+    } else {
+        qDebug()<<db_main.lastError();
+    }
+    lw->scrollToItem(lw->item(lw->count() - 1));
+}
+void SqlManager::AddNote(QListWidget * lw, const QString &client_name, QString note)
+{
+    QString note_new = note.replace('\n', ' ');
+    QString s = QString("INSERT INTO Notes (Name, Date, Time, Note, GUID)"
+                        " VALUES ('%1', CURDATE(), NOW(), '%2', '%3');").arg(
+                client_name, note_new, guid.toString(QUuid::StringFormat::WithoutBraces));
+    if(query->exec(s)){
+        qDebug()<<"Note was input";
+    } else{
+        qDebug()<<"Note did not go through";
+        qDebug()<<s;
+        qDebug()<<db_main.lastError();
+    }
+    LoadNotes(lw, client_name);
 }

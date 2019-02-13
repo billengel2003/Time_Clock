@@ -18,6 +18,7 @@ private:
     QSqlQuery * query;
     void Load_Client_Information(const QString &client_name);
     void Load_Client_Time_Clock(const QString &client_name);
+    QString MakeTimeNice(const QString &sArg);
     QString time_0, name_0;
     QUuid guid;
 public:
@@ -30,8 +31,9 @@ public:
     void LoadClientList(QComboBox * cmb);
     void ClockIn(const QString &client_name);
     void ClockOut(const QString &client_name);
-    void AddNote(const QString &client_name, const QString &note);
-    void LoadListWidget(QListWidget * lw, const QString &client_name);
+    void AddNote(QListWidget * lw, const QString &client_name, QString note);
+    void LoadClientInfo(QListWidget * lw, const QString &client_name);
+    void LoadNotes(QListWidget * lw, const QString &client_name);
     void EditClient(const QString &phone, const QString &email,
                     const QString &addy, const QString &city, const QString &state,
                     const QString &zip, const QString &contact,
